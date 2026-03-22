@@ -1,55 +1,23 @@
-"""
-Database configuration and session management
-"""
-
-import logging
-from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
 
 from config.settings import DATABASE_URL
 
-logger = logging.getLogger(__name__)
-
-# SQLAlchemy setup
 engine = create_engine(
     DATABASE_URL,
+    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
     pool_pre_ping=True,
-    pool_recycle=300,
-    echo=False,  # Set to True for SQL query logging in development
+    echo=False,
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base class for all database models
 Base = declarative_base()
 
-def get_db() -> Generator[Session, None, None]:
-    """
-    Dependency function to get database session.
-    Use with FastAPI's dependency injection.
-    """
+
+def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-def create_tables():
-    """Create all database tables"""
-    try:
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables created successfully")
-    except Exception as e:
-        logger.error(f"Error creating database tables: {e}")
-        raise
-
-def drop_tables():
-    """Drop all database tables (use with caution!)"""
-    try:
-        Base.metadata.drop_all(bind=engine)
-        logger.info("Database tables dropped successfully")
-    except Exception as e:
-        logger.error(f"Error dropping database tables: {e}")
-        raise

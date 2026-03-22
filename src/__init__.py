@@ -1,6 +1,3 @@
-"""
-TCG Marketplace Platform - Source Package
-"""
+"""TCG Marketplace source package"""
 
 __version__ = "0.1.0"
-__author__ = "TCG Marketplace Team"

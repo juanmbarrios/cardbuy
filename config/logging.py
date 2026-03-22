@@ -2,69 +2,44 @@ import logging
 import logging.config
 from pathlib import Path
 
-# Create logs directory if it doesn't exist
-logs_dir = Path("logs")
-logs_dir.mkdir(exist_ok=True)
+LOG_DIR = Path("logs")
+LOG_DIR.mkdir(exist_ok=True)
 
-# Logging Configuration
 LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "default": {
-            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        "standard": {
+            "format": "%(asctime)s %(levelname)s [%(name)s] %(message)s",
             "datefmt": "%Y-%m-%d %H:%M:%S",
-        },
-        "detailed": {
-            "format": "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s",
-            "datefmt": "%Y-%m-%d %H:%M:%S",
-        },
+        }
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "default",
-            "level": "INFO",
+            "formatter": "standard",
+            "level": "DEBUG",
         },
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "logs/app.log",
-            "maxBytes": 10485760,  # 10MB
+            "formatter": "standard",
+            "filename": str(LOG_DIR / "app.log"),
+            "mode": "a",
+            "maxBytes": 10 * 1024 * 1024,
             "backupCount": 5,
-            "formatter": "detailed",
-            "level": "DEBUG",
-        },
-        "error_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": "logs/error.log",
-            "maxBytes": 10485760,  # 10MB
-            "backupCount": 5,
-            "formatter": "detailed",
-            "level": "ERROR",
+            "level": "INFO",
         },
     },
     "root": {
-        "level": "INFO",
-        "handlers": ["console", "file", "error_file"],
-    },
-    "loggers": {
-        "uvicorn": {
-            "level": "INFO",
-            "handlers": ["console"],
-            "propagate": False,
-        },
-        "sqlalchemy": {
-            "level": "WARNING",
-            "handlers": ["console"],
-            "propagate": False,
-        },
+        "handlers": ["console", "file"],
+        "level": "DEBUG",
     },
 }
 
+
 def setup_logging():
-    """Setup logging configuration"""
     logging.config.dictConfig(LOGGING_CONFIG)
 
-def get_logger(name: str) -> logging.Logger:
-    """Get a logger instance"""
+
+def get_logger(name=None):
     return logging.getLogger(name)
