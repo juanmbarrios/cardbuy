@@ -1,32 +1,56 @@
-name: Bootstrap Project
+name: Bootstrap project
 
 on:
   push:
     paths:
-      - 'docs/project.md'
-    branches:
-      - main
-      - master
+      - docs/project.md
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Run without creating or updating GitHub issues
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 permissions:
   contents: write
   issues: write
 
+concurrency:
+  group: bootstrap-project-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   bootstrap:
+    name: Bootstrap issues and labels
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Run bootstrap script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          PROJECT_MD_PATH: docs/project.md
+          RULES_DIR: docs/rules
+          STATE_PATH: .automation/state.json
+          ISSUE_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == 'true' && '1' || '0' }}
         run: python scripts/bootstrap_project.py
+
+      - name: Upload automation state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bootstrap-state
+          path: .automation/state.json
+          if-no-files-found: warn

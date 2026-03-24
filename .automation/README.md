@@ -7,9 +7,10 @@ This directory contains automation state and configuration for the project.
 ### `state.json`
 Tracks the state of automation runs:
 - `version`: Schema version
-- `created_issues`: Maps task IDs to GitHub issue numbers to prevent duplicate creation
-- `created_labels`: List of created labels
-- `last_run`: Timestamp of the last successful automation run
+- `project_fingerprint`: Fingerprint of the current `docs/project.md`
+- `generated_at`: Timestamp of the last successful generation
+- `issues`: Maps generated task IDs to GitHub issue metadata
+- `labels`: Area labels managed by the automation
 
 ## How It Works
 
@@ -25,22 +26,18 @@ The automation system is triggered by:
 
 ### Bootstrap Script Responsibilities
 
-- Reads `docs/project.md` and extracts the Automation manifest (JSON block)
-- **Creates Labels**: Generates labels for:
-  - Areas: `area/foundation`, `area/catalog`, etc.
-  - Priorities: `priority/P0`, `priority/P1`, `priority/P2`
-  - Sizes: `size/S`, `size/M`, `size/L`, `size/XL`
-- **Creates Issues**: Generates GitHub issues for each task with:
-  - Task ID, area, priority, size in description
-  - Acceptance criteria as checkboxes
-  - Subtasks as checkboxes
-  - Dependencies documented
-- **Creates Rules Directory**: Generates `docs/rules/` with:
-  - `NAMING_CONVENTIONS.md`
-  - `COMMIT_CONVENTIONS.md`
-  - `CODE_REVIEW_GUIDELINES.md`
-  - `API_STANDARDS.md`
-- **Tracks State**: Updates `state.json` to avoid duplicate issues
+- Reads `docs/project.md` as structured Markdown
+- Extracts `Modules`, `Dependencies`, `Order of construction`, `Priorities`, and `Proposed tasks`
+- Creates or maintains area labels using the exact module names from the project document
+- Generates one structured issue per proposed task with:
+  - numbered title
+  - automatic task ID
+  - inferred area
+  - inferred priority
+  - simple dependencies
+  - acceptance criteria
+- Keeps `docs/rules/` aligned with the project areas
+- Updates `state.json` to avoid duplicate issue creation
 
 ## Requirements
 
@@ -61,23 +58,20 @@ python scripts/bootstrap_project.py
 ## Idempotency
 
 The system is idempotent:
-- Duplicate issues are not created (tracked in `state.json`)
-- Labels are created only if they don't exist
-- Rules are created only if they don't exist
+- Duplicate issues are not created when task IDs already exist in `state.json`
+- Existing issues are updated instead of recreated when the same task ID is regenerated
+- Area labels are created only when missing
+- Base area rule files are created only when missing
 
-## Manifest Structure
+## Markdown Source Structure
 
-The Automation manifest in `docs/project.md` contains:
-- `schema_version`: Version of the manifest format
-- `project_name`: Name of the project
-- `areas`: Array of work areas with `id` and `name`
-- `tasks`: Array of tasks with:
-  - `id`: Task identifier (T001, T002, etc.)
-  - `title`: Task title
-  - `area`: Area ID
-  - `priority`: Priority level (P0, P1, P2)
-  - `size`: Task size (S, M, L, XL)
-  - `depends_on`: Array of task IDs this depends on
-  - `description`: Task description
-  - `acceptance`: Array of acceptance criteria
-  - `subtasks`: Array of subtasks
+The automation does not depend on JSON inside `docs/project.md`.
+
+It reads normal Markdown sections such as:
+- `Modules`
+- `Dependencies`
+- `Order of construction`
+- `Priorities`
+- `Proposed tasks`
+
+If some sections are missing, the script falls back to defaults instead of failing.

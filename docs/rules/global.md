@@ -1,29 +1,17 @@
-# Global Development Rules
+# Global
 
-## General Principles
-- Write clean, readable, and maintainable code
-- Follow the principle of least surprise
-- Document complex business logic
-- Use meaningful variable and function names
-- Keep functions small and focused on a single responsibility
+## Purpose
+- Keep automation aligned with `docs/project.md` as the source of truth.
+- Generate actionable, granular issues without depending on JSON manifests.
+- Preserve stable issue identities across reruns through `.automation/state.json`.
 
-## Code Quality
-- No hardcoded values in production code
-- Handle errors gracefully with appropriate logging
-- Validate input data at system boundaries
-- Use type hints where applicable
-- Write self-documenting code
+## Backlog rules
+- Create one issue per item in `Proposed tasks`.
+- Use the exact area names defined in the `Modules` section as labels.
+- Infer priority from `Priorities` when possible, otherwise use safe defaults.
+- Infer simple dependencies from `Dependencies` and `Order of construction`.
 
-## Security
-- Never log sensitive information
-- Validate and sanitize all user inputs
-- Use parameterized queries for database operations
-- Implement proper authentication and authorization
-- Follow the principle of least privilege
-
-## Performance
-- Optimize database queries and avoid N+1 problems
-- Use appropriate data structures and algorithms
-- Cache frequently accessed data when beneficial
-- Monitor and profile performance bottlenecks
-- Consider scalability in architectural decisions
+## Quality rules
+- Every issue must include a numbered title, task ID, area, dependencies, and acceptance criteria.
+- Missing optional sections in the Markdown must not break issue generation.
+- Normal Markdown variations such as bullets, numbering, and wrapped lines must be tolerated.

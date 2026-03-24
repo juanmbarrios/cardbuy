@@ -1,7 +1,7 @@
 {
-  "version": "1.0",
-  "created_issues": {},
-  "created_labels": [],
-  "completed_issues": ["issue-1"],
-  "last_run": "2nd-stage"
+  "version": 2,
+  "project_fingerprint": "",
+  "generated_at": null,
+  "issues": {},
+  "labels": []
 }
