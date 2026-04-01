@@ -1,0 +1,77 @@
+name: "TCG Data — Cartas / Sets / Precios"
+description: "Issue relacionada con datos TCG: cartas, expansiones, precios de mercado, sync con APIs externas"
+title: "[Data] "
+labels: ["marketplace", "backend"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## TCG Data Issue — CardBuy
+        Para issues relacionadas con el catálogo de cartas, sets, precios, raridades, idiomas y sincronización con APIs externas (Scryfall, Pokémon TCG API, YGOPRODeck, etc.)
+
+  - type: dropdown
+    id: game
+    attributes:
+      label: Juego
+      options:
+        - Pokémon
+        - Magic The Gathering
+        - Yu-Gi-Oh!
+        - One Piece
+        - Lorcana
+        - Dragon Ball
+        - Flesh and Blood
+        - Digimon
+        - Vanguard
+        - Todos
+    validations:
+      required: true
+
+  - type: dropdown
+    id: data_type
+    attributes:
+      label: Tipo de dato
+      options:
+        - "Cartas (Card)"
+        - "Sets / Expansiones (CardSet)"
+        - "Precios de mercado (PriceHistory)"
+        - "Imágenes de cartas"
+        - "Sync con API externa"
+        - "Seed inicial de datos"
+        - "Corrección de datos incorrectos"
+        - "Raridades / condiciones / idiomas"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción
+      description: "¿Qué datos faltan, están mal o necesitan actualizarse?"
+      placeholder: |
+        Set: [nombre del set, código]
+        Cartas afectadas: [rango de números o lista]
+        Problema: [datos incorrectos, faltan, imagen rota...]
+        Fuente de datos correctos: [URL de la API o referencia]
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Criterios de aceptación
+      placeholder: |
+        - [ ] [N] cartas del set [X] importadas correctamente
+        - [ ] Imágenes disponibles en MinIO/Storage
+        - [ ] Precios iniciales poblados
+        - [ ] Slugs SEO generados correctamente
+    validations:
+      required: true
+
+  - type: textarea
+    id: api_reference
+    attributes:
+      label: Referencias de API externa
+      placeholder: |
+        API: https://api.pokemontcg.io/v2/cards?q=set.id:sv1
+        Documentación: https://docs.pokemontcg.io/

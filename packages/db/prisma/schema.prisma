@@ -1,0 +1,666 @@
+// =============================================================================
+// CardBuy — Prisma Schema
+// Marketplace TCG: cartas, sellers, órdenes, precios, trust & safety
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum Game {
+  POKEMON
+  MAGIC_THE_GATHERING
+  YUGIOH
+  ONE_PIECE
+  LORCANA
+  DRAGON_BALL
+  FLESH_AND_BLOOD
+  DIGIMON
+  VANGUARD
+}
+
+enum CardCondition {
+  NEAR_MINT       // NM — Casi perfecto
+  LIGHTLY_PLAYED  // LP — Ligeramente jugada
+  MODERATELY_PLAYED // MP — Moderadamente jugada
+  HEAVILY_PLAYED  // HP — Muy jugada
+  DAMAGED         // DMG — Dañada
+}
+
+enum CardLanguage {
+  ES   // Español
+  EN   // Inglés
+  FR   // Francés
+  DE   // Alemán
+  IT   // Italiano
+  PT   // Portugués
+  JA   // Japonés
+  KO   // Coreano
+  ZH   // Chino
+}
+
+enum CardRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  DOUBLE_RARE
+  ULTRA_RARE
+  SECRET_RARE
+  HYPER_RARE
+  RAINBOW_RARE
+  FULL_ART
+  SPECIAL_ILLUSTRATION
+  PROMO
+  TOKEN
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  RESERVED
+  CANCELLED
+  EXPIRED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAYMENT_CONFIRMED
+  PREPARING
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  DISPUTED
+  REFUNDED
+  CANCELLED
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_BUYER
+  RESOLVED_SELLER
+  ESCALATED
+  CLOSED
+}
+
+enum KYCStatus {
+  NOT_STARTED
+  PENDING
+  SUBMITTED
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+enum UserRole {
+  BUYER
+  SELLER
+  ADMIN
+  MODERATOR
+}
+
+// =============================================================================
+// USUARIOS Y AUTENTICACIÓN (NextAuth.js compatible)
+// =============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  role          UserRole  @default(BUYER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // NextAuth relations
+  accounts      Account[]
+  sessions      Session[]
+
+  // Marketplace relations
+  sellerProfile  SellerProfile?
+  buyerListings  CardListing[]   @relation("BuyerListings")
+  ordersAsBuyer  Order[]         @relation("BuyerOrders")
+  ordersAsSeller Order[]         @relation("SellerOrders")
+  watchlistItems WatchlistEntry[]
+  reviews        Review[]        @relation("ReviewAuthor")
+  receivedReviews Review[]       @relation("ReviewTarget")
+  kycVerification KYCVerification?
+  disputesAsBuyer Dispute[]      @relation("DisputeBuyer")
+  disputesAsSeller Dispute[]     @relation("DisputeSeller")
+  communityPosts  CommunityPost[]
+  notifications   Notification[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// =============================================================================
+// SELLER — Perfil, reputación y herramientas
+// =============================================================================
+
+model SellerProfile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  shopName        String    @unique
+  shopSlug        String    @unique
+  description     String?
+  bannerImage     String?
+  avatarImage     String?
+
+  // Configuración de tienda
+  dispatchDays    Int       @default(3)   // días hábiles para enviar
+  acceptsReturns  Boolean   @default(true)
+  returnDays      Int       @default(14)
+
+  // Métricas de reputación
+  totalSales      Int       @default(0)
+  totalRevenue    Decimal   @default(0)  @db.Decimal(10, 2)
+  averageRating   Float     @default(0)
+  totalReviews    Int       @default(0)
+
+  // KYB (Know Your Business)
+  kybStatus       KYCStatus @default(NOT_STARTED)
+  kybDocuments    KYBDocument[]
+
+  // Stripe Connect
+  stripeAccountId String?
+  stripeOnboarded Boolean   @default(false)
+
+  // Estado
+  isActive        Boolean   @default(true)
+  isSuspended     Boolean   @default(false)
+  suspendedReason String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id])
+  listings        CardListing[]
+
+  @@map("seller_profiles")
+}
+
+// =============================================================================
+// CATÁLOGO TCG — Juegos, Sets, Cartas
+// =============================================================================
+
+model CardSet {
+  id          String   @id @default(cuid())
+  game        Game
+  name        String
+  code        String   // ej: "sv1", "lea", "LOB"
+  slug        String   @unique
+  releaseDate DateTime?
+  totalCards  Int?
+  imageUrl    String?
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  cards       Card[]
+
+  @@unique([game, code])
+  @@map("card_sets")
+}
+
+model Card {
+  id              String      @id @default(cuid())
+  game            Game
+  setId           String
+  name            String
+  nameEn          String?     // nombre en inglés para búsqueda
+  number          String      // número dentro del set, ej: "025/165"
+  slug            String      @unique
+  rarity          CardRarity
+
+  // Datos de carta
+  artist          String?
+  imageUrl        String?
+  imageLowResUrl  String?
+
+  // Metadatos específicos por juego (JSON flexible)
+  attributes      Json?       // hp, tipo, ataques, etc.
+
+  // SEO programático
+  metaTitle       String?
+  metaDescription String?
+
+  // Precio de referencia (calculado)
+  avgMarketPrice  Decimal?    @db.Decimal(10, 2)
+  lastPriceUpdate DateTime?
+
+  // IDs externos para sync con APIs TCG
+  externalId      String?     // ID en la API oficial del juego
+  externalIdAlt   String?     // ID alternativo
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  set             CardSet     @relation(fields: [setId], references: [id])
+  listings        CardListing[]
+  priceHistory    PriceHistory[]
+  watchlistItems  WatchlistEntry[]
+
+  @@index([game, slug])
+  @@index([setId])
+  @@map("cards")
+}
+
+// =============================================================================
+// LISTINGS — Anuncios de venta
+// =============================================================================
+
+model CardListing {
+  id          String        @id @default(cuid())
+  cardId      String
+  sellerId    String        // FK a SellerProfile
+  buyerId     String?       // Se rellena al comprar
+
+  condition   CardCondition
+  language    CardLanguage  @default(EN)
+  price       Decimal       @db.Decimal(10, 2)
+  quantity    Int           @default(1)
+
+  // Detalles del estado
+  isFoil      Boolean       @default(false)
+  isGraded    Boolean       @default(false)
+  gradingInfo GradingInfo?
+
+  // Descripción y fotos
+  description String?
+  imageUrls   String[]      // fotos adicionales del vendedor
+
+  status      ListingStatus @default(ACTIVE)
+
+  // Shipping
+  shippingCost    Decimal   @default(0) @db.Decimal(10, 2)
+  freeShipping    Boolean   @default(false)
+  shippingDays    Int       @default(5)
+
+  // Visibilidad
+  views       Int           @default(0)
+  featured    Boolean       @default(false)
+
+  expiresAt   DateTime?
+  soldAt      DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  card        Card          @relation(fields: [cardId], references: [id])
+  seller      SellerProfile @relation(fields: [sellerId], references: [id])
+  buyer       User?         @relation("BuyerListings", fields: [buyerId], references: [id])
+  orderItem   OrderItem?
+
+  @@index([cardId, status])
+  @@index([sellerId, status])
+  @@map("card_listings")
+}
+
+model GradingInfo {
+  id          String      @id @default(cuid())
+  listingId   String      @unique
+  company     String      // PSA, BGS, CGC, etc.
+  grade       String      // 10, 9.5, PSA 10, etc.
+  certNumber  String?
+  gradedAt    DateTime?
+
+  listing     CardListing @relation(fields: [listingId], references: [id])
+
+  @@map("grading_info")
+}
+
+// =============================================================================
+// ÓRDENES Y TRANSACCIONES
+// =============================================================================
+
+model Order {
+  id              String      @id @default(cuid())
+  buyerId         String
+  sellerId        String
+
+  status          OrderStatus @default(PENDING_PAYMENT)
+
+  subtotal        Decimal     @db.Decimal(10, 2)
+  shippingCost    Decimal     @db.Decimal(10, 2)
+  platformFee     Decimal     @db.Decimal(10, 2)
+  total           Decimal     @db.Decimal(10, 2)
+
+  // Stripe
+  stripePaymentIntentId String?
+  stripeTransferId      String?
+
+  // Dirección de envío (snapshot)
+  shippingAddress Json
+
+  // Notas
+  buyerNote       String?
+  sellerNote      String?
+
+  confirmedAt     DateTime?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  buyer           User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  seller          User        @relation("SellerOrders", fields: [sellerId], references: [id])
+  items           OrderItem[]
+  tracking        OrderTracking?
+  dispute         Dispute?
+  review          Review?
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String      @id @default(cuid())
+  orderId     String
+  listingId   String      @unique
+
+  quantity    Int
+  unitPrice   Decimal     @db.Decimal(10, 2)
+  total       Decimal     @db.Decimal(10, 2)
+
+  // Snapshot de la carta al momento de la compra
+  cardSnapshot Json
+
+  order       Order       @relation(fields: [orderId], references: [id])
+  listing     CardListing @relation(fields: [listingId], references: [id])
+
+  @@map("order_items")
+}
+
+model OrderTracking {
+  id              String    @id @default(cuid())
+  orderId         String    @unique
+  carrier         String?
+  trackingNumber  String?
+  trackingUrl     String?
+  estimatedDate   DateTime?
+  events          Json[]    // historial de eventos de tracking
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  order           Order     @relation(fields: [orderId], references: [id])
+
+  @@map("order_tracking")
+}
+
+// =============================================================================
+// PRICING HISTÓRICO
+// =============================================================================
+
+model PriceHistory {
+  id        String   @id @default(cuid())
+  cardId    String
+
+  condition CardCondition
+  language  CardLanguage
+
+  price     Decimal  @db.Decimal(10, 2)
+  source    String   // "listing_sold", "market_feed", etc.
+
+  recordedAt DateTime @default(now())
+
+  card      Card     @relation(fields: [cardId], references: [id])
+
+  @@index([cardId, recordedAt])
+  @@map("price_history")
+}
+
+// =============================================================================
+// WATCHLIST
+// =============================================================================
+
+model WatchlistEntry {
+  id          String    @id @default(cuid())
+  userId      String
+  cardId      String
+
+  // Alerta de precio
+  priceAlert  Boolean   @default(false)
+  maxPrice    Decimal?  @db.Decimal(10, 2)
+
+  // Filtros de alerta
+  conditions  CardCondition[]
+  languages   CardLanguage[]
+
+  notifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id])
+  card        Card      @relation(fields: [cardId], references: [id])
+
+  @@unique([userId, cardId])
+  @@map("watchlist_entries")
+}
+
+// =============================================================================
+// DISPUTAS
+// =============================================================================
+
+model Dispute {
+  id          String        @id @default(cuid())
+  orderId     String        @unique
+  buyerId     String
+  sellerId    String
+
+  status      DisputeStatus @default(OPEN)
+  reason      String        // "not_received", "not_as_described", "damaged", etc.
+  description String
+
+  resolution  String?
+  resolvedAt  DateTime?
+  resolvedBy  String?       // userId del moderador
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  order       Order         @relation(fields: [orderId], references: [id])
+  buyer       User          @relation("DisputeBuyer", fields: [buyerId], references: [id])
+  seller      User          @relation("DisputeSeller", fields: [sellerId], references: [id])
+  evidence    DisputeEvidence[]
+
+  @@map("disputes")
+}
+
+model DisputeEvidence {
+  id          String   @id @default(cuid())
+  disputeId   String
+  uploadedBy  String   // userId
+  type        String   // "photo", "video", "document", "message"
+  fileUrl     String
+  description String?
+
+  createdAt   DateTime @default(now())
+
+  dispute     Dispute  @relation(fields: [disputeId], references: [id])
+
+  @@map("dispute_evidence")
+}
+
+// =============================================================================
+// KYC/KYB — Verificación de identidad y negocio
+// =============================================================================
+
+model KYCVerification {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  status          KYCStatus @default(NOT_STARTED)
+
+  provider        String    @default("stripe_identity")
+  providerSessionId String?
+
+  // Datos verificados (encriptados en producción)
+  verifiedName    String?
+  verifiedDob     DateTime?
+  verifiedCountry String?
+
+  submittedAt     DateTime?
+  verifiedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  expiresAt       DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@map("kyc_verifications")
+}
+
+model KYBDocument {
+  id              String        @id @default(cuid())
+  sellerProfileId String
+  type            String        // "tax_id", "bank_statement", "business_reg"
+  fileUrl         String
+  status          KYCStatus     @default(PENDING)
+  reviewedAt      DateTime?
+  reviewedBy      String?
+
+  createdAt       DateTime      @default(now())
+
+  sellerProfile   SellerProfile @relation(fields: [sellerProfileId], references: [id])
+
+  @@map("kyb_documents")
+}
+
+// =============================================================================
+// REVIEWS Y REPUTACIÓN
+// =============================================================================
+
+model Review {
+  id          String   @id @default(cuid())
+  orderId     String   @unique
+  authorId    String
+  targetId    String   // userId del vendedor o comprador
+
+  rating      Int      // 1-5
+  comment     String?
+
+  // Flags de moderación
+  isFlagged   Boolean  @default(false)
+  flagReason  String?
+
+  createdAt   DateTime @default(now())
+
+  order       Order    @relation(fields: [orderId], references: [id])
+  author      User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+  target      User     @relation("ReviewTarget", fields: [targetId], references: [id])
+
+  @@map("reviews")
+}
+
+// =============================================================================
+// COMUNIDAD
+// =============================================================================
+
+model CommunityPost {
+  id        String   @id @default(cuid())
+  authorId  String
+  game      Game?    // null = general
+
+  title     String
+  slug      String   @unique
+  content   String
+  tags      String[]
+
+  views     Int      @default(0)
+  likes     Int      @default(0)
+
+  isPinned  Boolean  @default(false)
+  isLocked  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author    User     @relation(fields: [authorId], references: [id])
+  comments  CommunityComment[]
+
+  @@map("community_posts")
+}
+
+model CommunityComment {
+  id        String        @id @default(cuid())
+  postId    String
+  authorId  String
+  content   String
+
+  createdAt DateTime      @default(now())
+
+  post      CommunityPost @relation(fields: [postId], references: [id])
+
+  @@map("community_comments")
+}
+
+// =============================================================================
+// NOTIFICACIONES
+// =============================================================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "order_update", "price_alert", "dispute", "review", etc.
+  title     String
+  body      String
+  data      Json?    // datos adicionales (orderId, cardId, etc.)
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}

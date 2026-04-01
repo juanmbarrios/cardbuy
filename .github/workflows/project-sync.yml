@@ -1,0 +1,65 @@
+name: Project Sync (Kanban)
+
+on:
+  issues:
+    types: [opened, closed, reopened, labeled, unlabeled]
+  pull_request:
+    types: [opened, closed, merged, ready_for_review, converted_to_draft]
+
+jobs:
+  sync:
+    name: Sync to Kanban board
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine target column
+        id: column
+        run: |
+          EVENT_NAME="${{ github.event_name }}"
+          ACTION="${{ github.event.action }}"
+          LABELS="${{ join(github.event.issue.labels.*.name, ',') }}"
+
+          if [[ "$EVENT_NAME" == "issues" ]]; then
+            if [[ "$ACTION" == "opened" || "$ACTION" == "reopened" ]]; then
+              echo "column=Todo" >> $GITHUB_OUTPUT
+            elif [[ "$ACTION" == "closed" ]]; then
+              echo "column=Done" >> $GITHUB_OUTPUT
+            elif [[ "$ACTION" == "labeled" ]]; then
+              NEW_LABEL="${{ github.event.label.name }}"
+              if [[ "$NEW_LABEL" == "in-progress" ]]; then
+                echo "column=In Progress" >> $GITHUB_OUTPUT
+              elif [[ "$NEW_LABEL" == "blocked" ]]; then
+                echo "column=Blocked" >> $GITHUB_OUTPUT
+              elif [[ "$NEW_LABEL" == "waiting-credentials" ]]; then
+                echo "column=Waiting for Credentials" >> $GITHUB_OUTPUT
+              else
+                echo "column=" >> $GITHUB_OUTPUT
+              fi
+            fi
+          elif [[ "$EVENT_NAME" == "pull_request" ]]; then
+            if [[ "$ACTION" == "opened" ]]; then
+              echo "column=In Review" >> $GITHUB_OUTPUT
+            elif [[ "$ACTION" == "ready_for_review" ]]; then
+              echo "column=Waiting for Review" >> $GITHUB_OUTPUT
+            elif [[ "$ACTION" == "closed" ]]; then
+              echo "column=Done" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Move issue in project board
+        if: steps.column.outputs.column != ''
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN || secrets.GH_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+          COLUMN: ${{ steps.column.outputs.column }}
+        run: |
+          chmod +x .github/scripts/project-move.sh
+          .github/scripts/project-move.sh "$COLUMN" "$ISSUE_NUMBER" || true

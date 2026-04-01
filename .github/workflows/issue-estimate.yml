@@ -1,0 +1,29 @@
+name: Issue Estimate
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  estimate:
+    name: Heuristic Estimation
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.issue.labels.*.name, 'skip-review')"
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Estimate Issue
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          REPO: ${{ github.repository }}
+        run: |
+          chmod +x .github/scripts/estimate-issue.sh
+          .github/scripts/estimate-issue.sh

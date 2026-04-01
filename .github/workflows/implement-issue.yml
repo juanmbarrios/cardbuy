@@ -1,0 +1,111 @@
+name: Implement Issue (Asistida)
+
+# Este workflow NO implementa código automáticamente (sin API de IA).
+# Su función es preparar el entorno para la implementación asistida por chat:
+# 1. Crea la rama feature/issue-N
+# 2. Mueve la issue a "In Progress"
+# 3. Comenta con el contexto necesario para empezar
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  prepare:
+    name: Prepare implementation branch
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'ai-implement'
+
+    permissions:
+      issues: write
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Git
+        run: |
+          git config user.name "CardBuy Bot"
+          git config user.email "bot@cardbuy.com"
+
+      - name: Create feature branch
+        id: branch
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          # Genera slug del título (lowercase, guiones, sin caracteres especiales)
+          SLUG=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-50)
+          BRANCH="feat/issue-${ISSUE_NUMBER}-${SLUG}"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+          # Crea la rama desde develop (o main si no existe develop)
+          BASE=$(git ls-remote --heads origin develop | wc -l)
+          if [ "$BASE" -gt 0 ]; then
+            git checkout -b "$BRANCH" origin/develop
+          else
+            git checkout -b "$BRANCH" origin/main
+          fi
+
+          git push origin "$BRANCH"
+          echo "✅ Rama creada: $BRANCH"
+
+      - name: Update labels
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue edit "$ISSUE_NUMBER" \
+            --repo "$REPO" \
+            --add-label "in-progress" \
+            --remove-label "ai-implement"
+
+      - name: Move to In Progress
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN || secrets.GH_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          chmod +x .github/scripts/project-move.sh
+          .github/scripts/project-move.sh "In Progress" "$ISSUE_NUMBER" || true
+
+      - name: Comment on issue
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          BRANCH: ${{ steps.branch.outputs.branch }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          COMMENT="## Rama de implementación lista
+
+          La rama \`$BRANCH\` ha sido creada desde \`develop\`.
+
+          ### Próximos pasos
+
+          1. \`git checkout $BRANCH\`
+          2. Abre esta issue en el chat con Claude Code
+          3. Usa el comando \`/implement-issue\` o pide directamente la implementación
+          4. Al terminar: \`git push origin $BRANCH\` y abre un PR
+
+          ### Contexto de la issue
+
+          **Título:** $ISSUE_TITLE
+
+          ### Checklist pre-implementación
+          - [ ] ¿Los criterios de aceptación son verificables?
+          - [ ] ¿Hay dependencias con otras issues abiertas?
+          - [ ] ¿Requiere migración de base de datos?
+          - [ ] ¿Afecta algún endpoint de pagos o KYC?
+
+          > Esta issue ha sido marcada para implementación asistida. El trabajo lo realizará el agente IA a través del chat."
+
+          gh issue comment "$ISSUE_NUMBER" \
+            --repo "$REPO" \
+            --body "$COMMENT"

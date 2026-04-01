@@ -1,0 +1,88 @@
+name: "Feature"
+description: "Nueva funcionalidad para el marketplace"
+title: "[Feature] "
+labels: ["marketplace"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Nueva Feature — CardBuy
+        Usa este template para proponer una nueva funcionalidad. Completa todos los campos para que la issue pueda entrar directamente al sprint.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción
+      description: "¿Qué problema resuelve esta feature? ¿Por qué es necesaria? ¿Qué comportamiento se espera?"
+      placeholder: |
+        Actualmente los compradores no pueden...
+        Se necesita que...
+        El resultado esperado es...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Criterios de aceptación
+      description: "Lista de condiciones verificables que deben cumplirse. Usa checkboxes."
+      placeholder: |
+        - [ ] El usuario puede...
+        - [ ] Al hacer X ocurre Y
+        - [ ] Tests escritos para el nuevo comportamiento
+        - [ ] Sin regresiones en el comportamiento existente
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tcg_game
+    attributes:
+      label: Juego(s) TCG afectados
+      description: "¿Esta feature es específica de algún juego o es transversal?"
+      multiple: true
+      options:
+        - Todos los juegos (transversal)
+        - Pokémon
+        - Magic The Gathering
+        - Yu-Gi-Oh!
+        - One Piece
+        - Lorcana
+        - Dragon Ball
+        - Flesh and Blood
+        - Digimon
+        - Vanguard
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: layers
+    attributes:
+      label: Capas afectadas
+      options:
+        - label: Backend (API Routes / servicios)
+        - label: Frontend (componentes / páginas)
+        - label: Base de datos (schema / migración Prisma)
+        - label: Infraestructura (config / deploy)
+        - label: Tests
+
+  - type: textarea
+    id: technical
+    attributes:
+      label: Consideraciones técnicas
+      description: "Archivos a modificar, entidades TCG involucradas, dependencias, riesgos conocidos."
+      placeholder: |
+        - Archivos: apps/web/src/app/(marketplace)/...
+        - Entidades: Card, CardListing, SellerProfile
+        - Depende de: Issue #N (si aplica)
+        - Riesgos: ...
+
+  - type: dropdown
+    id: estimate
+    attributes:
+      label: Estimación inicial
+      options:
+        - "XS — < 1 hora"
+        - "S — 1 a 3 horas"
+        - "M — 3 a 8 horas"
+        - "L — 1 a 2 días"
+        - "XL — más de 2 días"

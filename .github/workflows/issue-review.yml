@@ -1,0 +1,40 @@
+name: Issue Review
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  review:
+    name: Validate & Review Issue
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.issue.labels.*.name, 'skip-review')"
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Review Issue Structure
+        id: review
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          REPO: ${{ github.repository }}
+        run: |
+          chmod +x .github/scripts/review-issue.sh
+          .github/scripts/review-issue.sh
+
+      - name: Add to project board
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN || secrets.GH_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          chmod +x .github/scripts/project-move.sh
+          .github/scripts/project-move.sh "Todo" "$ISSUE_NUMBER" || true

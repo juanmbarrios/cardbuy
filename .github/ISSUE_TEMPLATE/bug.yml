@@ -1,0 +1,81 @@
+name: "Bug"
+description: "Reportar un bug o comportamiento inesperado"
+title: "[Bug] "
+labels: ["backend"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Report — CardBuy
+        Describe el bug con el máximo detalle posible para poder reproducirlo y corregirlo.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción del bug
+      description: "¿Qué ocurre? ¿Qué debería ocurrir?"
+      placeholder: |
+        Al hacer X, ocurre Y.
+        El comportamiento esperado es Z.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Pasos para reproducir
+      description: "Pasos concretos para reproducir el bug."
+      placeholder: |
+        1. Ir a la página de...
+        2. Hacer clic en...
+        3. Ver el error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamiento esperado
+      description: "¿Qué debería pasar en su lugar?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto adicional
+      description: "Logs de error, screenshots, URL, versión del navegador, entorno (local/staging/prod)"
+      placeholder: |
+        Entorno: producción / staging / local
+        Navegador: Chrome 124 / Firefox / Safari
+        Error en consola: ...
+        Stack trace: ...
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severidad
+      options:
+        - "Crítico — impide operar (pagos, KYC, órdenes)"
+        - "Alto — funcionalidad importante rota"
+        - "Medio — funcionalidad degradada con workaround"
+        - "Bajo — cosmético o edge case raro"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: area
+    attributes:
+      label: Área afectada
+      options:
+        - label: Marketplace (búsqueda, catálogo)
+        - label: Listings (anuncios de venta)
+        - label: Órdenes y pagos
+        - label: Perfil de seller
+        - label: KYC/KYB
+        - label: Disputas
+        - label: Tracking/Logística
+        - label: Precios e histórico
+        - label: Comunidad
+        - label: Autenticación
+        - label: Admin

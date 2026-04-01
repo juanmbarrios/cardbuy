@@ -1,0 +1,33 @@
+name: Detect Duplicate Issues
+
+on:
+  schedule:
+    # Cada lunes a las 09:00 Madrid (UTC+1/+2 según estación → 08:00 UTC)
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+    inputs:
+      post_summary_issue:
+        description: "Crear issue resumen con los duplicados encontrados"
+        type: boolean
+        default: false
+
+jobs:
+  detect:
+    name: Detect Duplicates
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect Duplicate Issues
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO: ${{ github.repository }}
+          POST_SUMMARY: ${{ github.event.inputs.post_summary_issue || 'false' }}
+        run: |
+          chmod +x .github/scripts/detect-duplicates.sh
+          .github/scripts/detect-duplicates.sh

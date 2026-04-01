@@ -1,0 +1,56 @@
+name: "Chore / Mantenimiento"
+description: "Tarea técnica, actualización de dependencias, configuración o refactor"
+title: "[Chore] "
+labels: ["infra"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Chore — CardBuy
+        Para tareas de mantenimiento, refactors, actualizaciones de dependencias o configuración técnica.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción de la tarea
+      description: "¿Qué hay que hacer y por qué?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Criterios de aceptación
+      placeholder: |
+        - [ ] [Condición verificable]
+        - [ ] Tests no rotos después del cambio
+        - [ ] Sin cambio de comportamiento visible para el usuario
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Tipo de chore
+      options:
+        - "Actualización de dependencia"
+        - "Refactor de código"
+        - "Configuración / variables de entorno"
+        - "Migración de datos"
+        - "Limpieza de deuda técnica (TODO/FIXME)"
+        - "Documentación"
+        - "CI/CD / GitHub Actions"
+        - "Otro"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: risk
+    attributes:
+      label: Riesgo del cambio
+      options:
+        - label: Puede afectar a otros módulos
+        - label: Requiere migración de base de datos
+        - label: Afecta al flujo de pagos o KYC
+        - label: Requiere redeploy coordinado
+        - label: Cambio de configuración en producción
