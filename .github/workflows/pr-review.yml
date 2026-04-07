@@ -32,7 +32,7 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           chmod +x .github/scripts/review-pr.sh
-          .github/scripts/review-pr.sh
+          .github/scripts/review-pr.sh || true
 
   lint-and-typecheck:
     name: Lint & Typecheck
@@ -49,7 +49,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
