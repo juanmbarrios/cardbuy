@@ -1,6 +1,20 @@
 import type { Metadata } from "next";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-display",
+  weight: ["600", "700", "800"],
+});
 import { Footer } from "@/components/Footer";
 import { Providers } from "@/components/Providers";
 
@@ -32,8 +46,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className="flex min-h-screen flex-col bg-white">
+    <html lang="es" className={`${inter.variable} ${plusJakartaSans.variable}`}>
+      <body className="flex min-h-screen flex-col bg-white font-sans">
         <Providers>
           <Navbar />
           <main className="flex-1">{children}</main>

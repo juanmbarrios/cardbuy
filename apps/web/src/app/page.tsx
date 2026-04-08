@@ -19,7 +19,7 @@ export default function HomePage() {
           <Badge variant="info" className="mb-4">
             Marketplace TCG de confianza
           </Badge>
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          <h1 className="font-display text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
             Compra y vende cartas TCG{" "}
             <span className="text-brand-600">con seguridad</span>
           </h1>
