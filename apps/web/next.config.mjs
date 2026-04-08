@@ -1,6 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: ["localhost:3000"],
@@ -25,7 +24,6 @@ const nextConfig: NextConfig = {
   // SEO programático: genera rutas estáticas para cartas, sets y juegos
   async rewrites() {
     return [
-      // /cartas/pokemon/pikachu-base-set → SEO friendly
       {
         source: "/cartas/:game/:slug",
         destination: "/cartas/[game]/[slug]",
