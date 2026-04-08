@@ -10,20 +10,20 @@ const games = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-gray-200 bg-gray-50 mt-auto">
+    <footer className="border-t border-surface-border bg-bg-deep mt-auto">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Marca */}
           <div>
-            <span className="text-lg font-bold text-brand-700">CardBuy</span>
-            <p className="mt-2 text-sm text-gray-500">
+            <span className="font-display text-lg font-bold text-brand">CardBuy</span>
+            <p className="mt-2 text-sm text-slate-500">
               El marketplace de cartas coleccionables de confianza. Compra y vende con seguridad.
             </p>
           </div>
 
           {/* Juegos */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
               Juegos
             </h3>
             <ul className="space-y-2">
@@ -31,7 +31,7 @@ export function Footer() {
                 <li key={game.href}>
                   <Link
                     href={game.href}
-                    className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+                    className="text-sm text-slate-500 hover:text-brand transition-colors"
                   >
                     {game.label}
                   </Link>
@@ -42,17 +42,17 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
               Legal
             </h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/terms" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+                <Link href="/terms" className="text-sm text-slate-500 hover:text-brand transition-colors">
                   Términos de uso
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+                <Link href="/privacy" className="text-sm text-slate-500 hover:text-brand transition-colors">
                   Privacidad
                 </Link>
               </li>
@@ -60,8 +60,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-gray-200 pt-6 text-center">
-          <p className="text-xs text-gray-400">
+        <div className="mt-8 border-t border-surface-border pt-6 text-center">
+          <p className="text-xs text-slate-600">
             © {new Date().getFullYear()} CardBuy. Todos los derechos reservados.
           </p>
         </div>

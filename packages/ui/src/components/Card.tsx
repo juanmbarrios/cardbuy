@@ -4,13 +4,16 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   padding?: boolean;
+  glow?: boolean;
 }
 
-export function Card({ children, className = "", padding = true }: CardProps) {
+export function Card({ children, className = "", padding = true, glow = false }: CardProps) {
   return (
     <div
       className={[
-        "rounded-2xl border border-gray-200 bg-white shadow-sm",
+        "rounded-xl border border-surface-border bg-surface shadow-sm",
+        "transition-all duration-200",
+        glow ? "hover:border-brand/40 hover:shadow-glow-card" : "hover:border-surface-raised",
         padding ? "p-6" : "",
         className,
       ].join(" ")}
@@ -30,7 +33,7 @@ export function CardHeader({ children, className = "" }: { children: React.React
 
 export function CardTitle({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <h3 className={["text-lg font-semibold text-gray-900", className].join(" ")}>
+    <h3 className={["text-lg font-semibold text-white", className].join(" ")}>
       {children}
     </h3>
   );
@@ -42,7 +45,7 @@ export function CardContent({ children, className = "" }: { children: React.Reac
 
 export function CardFooter({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={["mt-4 pt-4 border-t border-gray-100", className].join(" ")}>
+    <div className={["mt-4 pt-4 border-t border-surface-border", className].join(" ")}>
       {children}
     </div>
   );
