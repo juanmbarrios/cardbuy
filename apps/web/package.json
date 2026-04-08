@@ -18,7 +18,10 @@
     "react-dom": "^18.3.0",
     "@cardbuy/db": "workspace:*",
     "@cardbuy/types": "workspace:*",
+    "@cardbuy/ui": "workspace:*",
     "next-auth": "^5.0.0-beta.18",
+    "@auth/prisma-adapter": "^2.7.2",
+    "bcryptjs": "^2.4.3",
     "stripe": "^15.0.0",
     "ioredis": "^5.3.0",
     "zod": "^3.23.0",
@@ -37,6 +40,7 @@
     "vitest": "^1.5.0",
     "@vitejs/plugin-react": "^4.2.0",
     "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.0"
+    "eslint-config-next": "^14.2.0",
+    "@types/bcryptjs": "^2.4.6"
   }
 }
