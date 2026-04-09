@@ -25,6 +25,13 @@ gh auth login
 # Selecciona: GitHub.com → HTTPS → Authenticate with browser
 ```
 
+El token necesita los scopes: `repo`, `project`, `write:discussion`.
+Si ya tienes sesión pero faltan scopes:
+
+```bash
+gh auth refresh -s project
+```
+
 ### 3. Crear labels en GitHub
 
 ```bash
@@ -51,47 +58,103 @@ Ve a: https://github.com/juanmbarrios/cardbuy/settings/secrets/actions
 
 1. Ve a https://github.com/juanmbarrios?tab=projects
 2. Crea un proyecto nuevo → "Board" view
-3. Añade las columnas: `Todo`, `In Progress`, `In Review`, `Blocked`, `Waiting for Credentials`, `Waiting for Review`, `Done`
-4. Ve al proyecto y anota el número en la URL: `github.com/users/juanmbarrios/projects/[NÚMERO]`
-5. En el repo, ve a Settings → Secrets → Variables y crea una variable `PROJECT_NUMBER` con ese número
+3. Añade exactamente estas columnas (en este orden):
+   - `Todo`
+   - `In Progress`
+   - `In Review`
+   - `Blocked`
+   - `Waiting for Credentials`
+   - `Waiting for Review`
+   - `Done`
+4. Anota el número en la URL: `github.com/users/juanmbarrios/projects/[NÚMERO]`
+5. Añade `PROJECT_NUMBER=[NÚMERO]` a tu `.env` local
 
 ### 6. Iniciar el servidor local
 
 ```bash
-# Opción 1: desarrollo con hot reload
-pnpm dev
-
-# Opción 2: producción local con PM2
-pnpm build
-pm2 start deploy/ecosystem.config.js
+docker compose -f infra/docker-compose.yml up -d   # base de datos
+pnpm dev                                             # servidor Next.js
 ```
 
-Verificar: http://localhost:3000/api/health → `{"status": "ok"}`
+Verificar: http://localhost:3000
 
 ---
 
-## Workflow diario
+## Workflow de issues (con skills de Claude Code)
+
+### Crear una issue nueva
+
+```
+/new-issue descripción de lo que quieres implementar
+```
+
+Claude:
+1. Genera la issue estructurada con criterios de aceptación
+2. La sube al repo con `gh issue create`
+3. La añade automáticamente al Kanban en columna **Todo**
+4. Muestra la URL de la issue
+
+### Implementar una issue
+
+```
+/implement-issue N
+```
+
+Claude:
+1. Mueve la issue a **In Progress** en el Kanban
+2. Lee la issue y planifica
+3. Implementa todos los criterios de aceptación
+4. Abre una PR apuntando a `develop`
+5. Mueve la issue al estado final según el resultado:
+
+| Resultado | Columna Kanban |
+|-----------|---------------|
+| PR creada, todo correcto | **In Review** |
+| Faltan API keys o secrets | **Waiting for Credentials** |
+| Depende de otra issue sin completar | **Blocked** |
+| Necesita decisión del usuario | **Waiting for Review** |
+
+### Reintentar una issue bloqueada
+
+Si una issue quedó en Blocked, Waiting for Credentials, etc., una vez resuelto el bloqueo:
+
+```
+/implement-issue N
+```
+
+Claude retoma la implementación y vuelve a mover la issue a **In Progress**.
+
+### Flujo completo de una issue
+
+```
+Todo → In Progress → In Review → (merge PR) → Done
+```
+
+El paso de **In Review → Done** lo hace el desarrollador manualmente al mergear la PR en GitHub.
+
+---
+
+## Otros comandos útiles
 
 ```bash
 # Inicio del día
-pnpm dev                    # arranca el servidor
-/standup                    # en el chat: resumen de actividad
+/standup                    # resumen de actividad reciente
 
-# Crear una issue
-/new-issue [descripción]    # en el chat: genera issue estructurada
-# → copiar en GitHub Issues
+# Revisión de código antes de PR
+/pr-review                  # revisión de la PR actual
 
-# Trabajar en una issue
-git checkout feat/issue-N   # rama creada automáticamente al añadir label ai-implement
-# ... trabajar ...
-/commit                     # en el chat: genera mensaje de commit
+# Revisión semanal del backlog
+/detect-duplicates          # detecta issues solapadas
+/check-todos                # audita deuda técnica (TODO/FIXME en código)
 
-# Antes de abrir un PR
-/pr-review                  # en el chat: revisión previa
-git push origin feat/issue-N
-gh pr create --fill
-
-# Revisión semanal
-/detect-duplicates          # en el chat: detecta solapamientos en el backlog
-/check-todos                # en el chat: audita deuda técnica
+# Commit estructurado
+/commit                     # genera mensaje de commit según cambios staged
 ```
+
+---
+
+## Notas de configuración
+
+- `PROJECT_NUMBER` debe estar en `.env` para que el Kanban funcione automáticamente
+- Si `gh` no tiene el scope `project`, ejecuta `gh auth refresh -s project`
+- Las columnas del Kanban deben llamarse exactamente como se indica en el paso 5 (sensible a mayúsculas)
