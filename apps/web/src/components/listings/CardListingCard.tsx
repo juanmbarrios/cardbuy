@@ -10,6 +10,10 @@ export interface CardListingData {
   game: string;
   sellerName: string;
   imageUrl?: string;
+  stock: number;
+  sellerRating: number;
+  sellerReviewCount: number;
+  isVerified: boolean;
 }
 
 const CONDITION_LABELS: Record<string, string> = {
@@ -28,16 +32,53 @@ const CONDITION_VARIANTS: Record<string, "success" | "warning" | "danger" | "def
   DMG: "danger",
 };
 
+function StockIndicator({ stock }: { stock: number }) {
+  if (stock === 0) {
+    return <Badge variant="danger">Agotado</Badge>;
+  }
+  if (stock === 1) {
+    return <Badge variant="warning">Última unidad</Badge>;
+  }
+  return <Badge variant="success">En stock ({stock})</Badge>;
+}
+
+function SellerInfo({
+  name,
+  rating,
+  reviewCount,
+  isVerified,
+}: {
+  name: string;
+  rating: number;
+  reviewCount: number;
+  isVerified: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 min-w-0">
+      <span className="text-xs text-slate-400 truncate">{name}</span>
+      {isVerified && (
+        <span
+          title="Vendedor verificado"
+          className="text-brand shrink-0 text-[10px] font-bold leading-none"
+        >
+          ✓
+        </span>
+      )}
+      <span className="text-xs text-amber-400 shrink-0">★ {rating.toFixed(1)}</span>
+      <span className="hidden sm:inline text-xs text-slate-600 shrink-0">({reviewCount})</span>
+    </div>
+  );
+}
+
 interface Props {
   listing: CardListingData;
 }
 
 export function CardListingCard({ listing }: Props) {
-  return (
-    <Link
-      href={`/listings/${listing.id}`}
-      className="group flex flex-col rounded-xl border border-surface-border bg-surface overflow-hidden transition-all duration-200 hover:border-brand/40 hover:shadow-glow-card hover:-translate-y-0.5"
-    >
+  const isOutOfStock = listing.stock === 0;
+
+  const cardContent = (
+    <>
       {/* Imagen */}
       <div className="aspect-[3/4] bg-bg-deep relative overflow-hidden">
         {listing.imageUrl ? (
@@ -45,39 +86,85 @@ export function CardListingCard({ listing }: Props) {
           <img
             src={listing.imageUrl}
             alt={listing.title}
-            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className={[
+              "h-full w-full object-cover transition-transform duration-300",
+              !isOutOfStock && "group-hover:scale-105",
+            ]
+              .filter(Boolean)
+              .join(" ")}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-slate-700 text-4xl">
             🃏
           </div>
         )}
-        {/* Gradient overlay en la parte inferior */}
-        <div className="absolute inset-0 bg-card-gradient opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-bg-deep/70 flex items-center justify-center">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Agotado
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Info */}
       <div className="p-3 flex flex-col gap-1.5">
-        <h3 className="text-sm font-medium text-slate-200 line-clamp-2 leading-tight">
+        {/* Precio — elemento dominante */}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-1 gap-y-0.5">
+          <span
+            className={[
+              "text-xl font-bold leading-none",
+              isOutOfStock ? "text-slate-500" : "text-brand",
+            ].join(" ")}
+          >
+            {listing.price.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
+          </span>
+          <StockIndicator stock={listing.stock} />
+        </div>
+
+        {/* Título */}
+        <h3 className="text-xs font-medium text-slate-300 line-clamp-2 leading-tight">
           {listing.title}
         </h3>
 
-        <div className="flex items-center gap-1.5 flex-wrap">
+        {/* Condición + idioma */}
+        <div className="flex items-center gap-1 flex-wrap">
           <Badge variant={CONDITION_VARIANTS[listing.condition] ?? "default"}>
             {CONDITION_LABELS[listing.condition] ?? listing.condition}
           </Badge>
           <Badge variant="outline">{listing.language}</Badge>
         </div>
 
-        <div className="flex items-center justify-between mt-1">
-          <span className="text-base font-bold text-white">
-            {listing.price.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
-          </span>
-          <span className="text-xs text-slate-500 truncate max-w-[80px]">
-            {listing.sellerName}
-          </span>
-        </div>
+        {/* Vendedor */}
+        <SellerInfo
+          name={listing.sellerName}
+          rating={listing.sellerRating}
+          reviewCount={listing.sellerReviewCount}
+          isVerified={listing.isVerified}
+        />
       </div>
+    </>
+  );
+
+  if (isOutOfStock) {
+    return (
+      <div
+        className="flex flex-col rounded-xl border border-surface-border bg-surface overflow-hidden opacity-50 cursor-not-allowed"
+        aria-disabled="true"
+        data-testid="listing-card-disabled"
+      >
+        {cardContent}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/listings/${listing.id}`}
+      className="group flex flex-col rounded-xl border border-surface-border bg-surface overflow-hidden transition-all duration-200 hover:border-brand/40 hover:shadow-glow-card hover:-translate-y-0.5"
+      data-testid="listing-card"
+    >
+      {cardContent}
     </Link>
   );
 }

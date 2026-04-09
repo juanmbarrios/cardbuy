@@ -15,11 +15,16 @@ export function ErrorState({
 }: ErrorStateProps) {
   return (
     <div
-      className={["flex flex-col items-center justify-center py-20 px-4 text-center", className].join(" ")}
+      className={[
+        "flex flex-col items-center justify-center py-20 px-4 text-center",
+        className,
+      ].join(" ")}
       data-testid="error-state"
       role="alert"
     >
-      <span className="text-5xl mb-4" aria-hidden="true">⚠️</span>
+      <span className="text-5xl mb-4" aria-hidden="true">
+        ⚠️
+      </span>
       <h3 className="text-lg font-semibold text-white">{title}</h3>
       <p className="mt-1 text-sm text-slate-400 max-w-sm">{description}</p>
       {onRetry && (

@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Spinner } from "@cardbuy/ui";
 import { FilterPanel } from "@/components/listings/FilterPanel";
 import { ListingsGrid } from "@/components/listings/ListingsGrid";
+import { ListingsGridSkeleton } from "@/components/listings/ListingsGridSkeleton";
 import type { CardListingData } from "@/components/listings/CardListingCard";
 
 interface SearchParams {
@@ -13,6 +13,7 @@ interface SearchParams {
   maxPrice?: string;
   sort?: string;
   page?: string;
+  q?: string;
 }
 
 interface Props {
@@ -28,7 +29,60 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 // Placeholder listings — se sustituirá por fetch real en la issue de marketplace
-const PLACEHOLDER_LISTINGS: CardListingData[] = [];
+const PLACEHOLDER_LISTINGS: CardListingData[] = [
+  {
+    id: "1",
+    title: "Charizard ex — Obsidian Flames",
+    price: 34.99,
+    condition: "NM",
+    language: "EN",
+    game: "pokemon",
+    sellerName: "CardShark",
+    stock: 3,
+    sellerRating: 4.9,
+    sellerReviewCount: 218,
+    isVerified: true,
+  },
+  {
+    id: "2",
+    title: "Black Lotus — Alpha",
+    price: 4999.0,
+    condition: "LP",
+    language: "EN",
+    game: "mtg",
+    sellerName: "MTGVault",
+    stock: 1,
+    sellerRating: 4.7,
+    sellerReviewCount: 85,
+    isVerified: true,
+  },
+  {
+    id: "3",
+    title: "Blue-Eyes White Dragon — LOB-001",
+    price: 12.5,
+    condition: "MP",
+    language: "ES",
+    game: "yugioh",
+    sellerName: "DuelStore",
+    stock: 0,
+    sellerRating: 4.2,
+    sellerReviewCount: 43,
+    isVerified: false,
+  },
+  {
+    id: "4",
+    title: "Monkey D. Luffy — OP01-001",
+    price: 8.0,
+    condition: "NM",
+    language: "JP",
+    game: "onepiece",
+    sellerName: "GrandLine",
+    stock: 7,
+    sellerRating: 4.8,
+    sellerReviewCount: 130,
+    isVerified: true,
+  },
+];
 
 export default function ListingsPage({ searchParams }: Props) {
   const gameLabel = searchParams.game
@@ -54,15 +108,12 @@ export default function ListingsPage({ searchParams }: Props) {
         </div>
 
         {/* Grid */}
-        <div className="flex-1">
-          <Suspense
-            fallback={
-              <div className="flex justify-center py-20">
-                <Spinner size="lg" />
-              </div>
-            }
-          >
-            <ListingsGrid listings={PLACEHOLDER_LISTINGS} />
+        <div className="flex-1 min-w-0">
+          <Suspense fallback={<ListingsGridSkeleton count={10} />}>
+            <ListingsGrid
+              listings={PLACEHOLDER_LISTINGS}
+              searchQuery={searchParams.q}
+            />
           </Suspense>
         </div>
       </div>

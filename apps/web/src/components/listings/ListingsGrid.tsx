@@ -3,6 +3,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 
 interface Props {
   listings: CardListingData[];
+  /** Término de búsqueda activo, para personalizar el mensaje de vacío */
   searchQuery?: string;
 }
 
@@ -11,7 +12,11 @@ export function ListingsGrid({ listings, searchQuery }: Props) {
     return (
       <EmptyState
         icon="🔍"
-        title={searchQuery ? `Sin resultados para "${searchQuery}"` : "No hay cartas disponibles"}
+        title={
+          searchQuery
+            ? `Sin resultados para "${searchQuery}"`
+            : "No hay cartas disponibles"
+        }
         description={
           searchQuery
             ? "Prueba con otros términos o elimina algunos filtros."

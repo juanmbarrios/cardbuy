@@ -22,10 +22,15 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={["flex flex-col items-center justify-center py-20 px-4 text-center", className].join(" ")}
+      className={[
+        "flex flex-col items-center justify-center py-20 px-4 text-center",
+        className,
+      ].join(" ")}
       data-testid="empty-state"
     >
-      <span className="text-5xl mb-4" aria-hidden="true">{icon}</span>
+      <span className="text-5xl mb-4" aria-hidden="true">
+        {icon}
+      </span>
       <h3 className="text-lg font-semibold text-white">{title}</h3>
       {description && (
         <p className="mt-1 text-sm text-slate-400 max-w-sm">{description}</p>
