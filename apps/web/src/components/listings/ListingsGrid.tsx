@@ -1,19 +1,24 @@
 import { CardListingCard, type CardListingData } from "./CardListingCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface Props {
   listings: CardListingData[];
+  searchQuery?: string;
 }
 
-export function ListingsGrid({ listings }: Props) {
+export function ListingsGrid({ listings, searchQuery }: Props) {
   if (listings.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <span className="text-5xl mb-4">🃏</span>
-        <h3 className="text-lg font-semibold text-white">No hay cartas disponibles</h3>
-        <p className="mt-1 text-sm text-slate-400">
-          Prueba a cambiar los filtros o vuelve más tarde.
-        </p>
-      </div>
+      <EmptyState
+        icon="🔍"
+        title={searchQuery ? `Sin resultados para "${searchQuery}"` : "No hay cartas disponibles"}
+        description={
+          searchQuery
+            ? "Prueba con otros términos o elimina algunos filtros."
+            : "Prueba a cambiar los filtros o vuelve más tarde."
+        }
+        action={{ label: "Ver todas las cartas", href: "/listings" }}
+      />
     );
   }
 
