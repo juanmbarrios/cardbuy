@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Button } from "@cardbuy/ui";
+import { ShoppingCart } from "lucide-react";
+import { useCart } from "@/context/CartContext";
 
 const NAV_LINKS = [
   { label: "Cartas", href: "/listings" },
@@ -15,6 +17,7 @@ const NAV_LINKS = [
 export function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
+  const { totalItems } = useCart();
 
   return (
     <nav className="sticky top-0 z-50 border-b border-surface-border bg-bg/90 backdrop-blur-md">
@@ -48,8 +51,23 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Auth */}
-          <div className="flex items-center gap-2">
+          {/* Carrito + Auth */}
+          <div className="flex items-center gap-3">
+            {session && (
+              <Link
+                href="/cart"
+                className="relative flex items-center text-slate-400 hover:text-white transition-colors"
+                aria-label="Carrito"
+              >
+                <ShoppingCart size={20} />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white leading-none">
+                    {totalItems > 9 ? "9+" : totalItems}
+                  </span>
+                )}
+              </Link>
+            )}
+
             {status === "loading" ? null : session ? (
               <>
                 <span className="hidden text-sm text-slate-400 sm:block">
