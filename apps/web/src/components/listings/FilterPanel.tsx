@@ -56,7 +56,7 @@ export function FilterPanel() {
   );
 
   const selectClass =
-    "w-full rounded-lg border border-surface-border bg-surface px-3 py-2 text-sm text-slate-200 " +
+    "w-full min-h-[44px] rounded-lg border border-surface-border bg-surface px-3 py-2 text-sm text-slate-200 " +
     "focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50 " +
     "transition-colors [&>option]:bg-surface [&>option]:text-slate-200";
 
