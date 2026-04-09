@@ -1,28 +1,46 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback, Suspense } from "react";
 
-export function SearchBar() {
+function HeroSearchBarInner() {
   const router = useRouter();
-  const [query, setQuery] = useState("");
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = query.trim();
-    if (trimmed) {
-      router.push(`/listings?q=${encodeURIComponent(trimmed)}`);
-    }
-  }
+  useEffect(() => {
+    setQuery(searchParams.get("q") ?? "");
+  }, [searchParams]);
+
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      const trimmed = query.trim();
+      const params = new URLSearchParams();
+      if (trimmed) params.set("q", trimmed);
+      router.push(`/listings?${params.toString()}`);
+    },
+    [query, router]
+  );
 
   return (
-    <form onSubmit={handleSubmit} className="relative w-full max-w-xl">
+    <form
+      role="search"
+      aria-label="Búsqueda principal de cartas"
+      onSubmit={handleSubmit}
+      className="relative w-full max-w-xl"
+    >
       <input
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Buscar carta, set o vendedor..."
-        className="w-full rounded-xl border border-surface-border bg-surface px-5 py-3.5 pr-24 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50 transition-colors"
+        className={[
+          "w-full rounded-xl border border-surface-border bg-surface",
+          "px-5 py-3.5 pr-24 text-sm text-slate-200 placeholder:text-slate-500",
+          "focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50",
+          "transition-colors",
+        ].join(" ")}
       />
       <button
         type="submit"
@@ -31,5 +49,15 @@ export function SearchBar() {
         Buscar
       </button>
     </form>
+  );
+}
+
+export function SearchBar() {
+  return (
+    <Suspense fallback={
+      <div className="w-full max-w-xl h-[52px] rounded-xl bg-surface animate-pulse" />
+    }>
+      <HeroSearchBarInner />
+    </Suspense>
   );
 }

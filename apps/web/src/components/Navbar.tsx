@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Button } from "@cardbuy/ui";
+import { NavSearchBar } from "@/components/NavSearchBar";
 
 const NAV_LINKS = [
   { label: "Cartas", href: "/listings" },
@@ -19,24 +20,26 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-surface-border bg-bg/90 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 group shrink-0">
             <span className="font-display text-xl font-bold text-brand group-hover:text-brand-light transition-colors">
               CardBuy
             </span>
           </Link>
 
-          {/* Links principales */}
+          {/* Links principales — solo desktop */}
           <div className="hidden items-center gap-1 md:flex">
             {NAV_LINKS.map((link) => {
-              const isActive = pathname === link.href || pathname?.startsWith(link.href.split("?")[0]);
+              const isActive =
+                pathname === link.href ||
+                pathname?.startsWith(link.href.split("?")[0]);
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={[
-                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors relative",
+                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors relative whitespace-nowrap",
                     isActive
                       ? "text-white after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:bg-accent after:rounded-full"
                       : "text-slate-400 hover:text-white hover:bg-surface",
@@ -48,11 +51,16 @@ export function Navbar() {
             })}
           </div>
 
+          {/* Búsqueda — crece para ocupar espacio disponible */}
+          <div className="flex-1 flex justify-center md:justify-start">
+            <NavSearchBar />
+          </div>
+
           {/* Auth */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {status === "loading" ? null : session ? (
               <>
-                <span className="hidden text-sm text-slate-400 sm:block">
+                <span className="hidden text-sm text-slate-400 lg:block truncate max-w-[120px]">
                   {session.user?.name ?? session.user?.email}
                 </span>
                 <Button
@@ -71,7 +79,9 @@ export function Navbar() {
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button variant="primary" size="sm">Registrarse</Button>
+                  <Button variant="primary" size="sm">
+                    Registrarse
+                  </Button>
                 </Link>
               </>
             )}
