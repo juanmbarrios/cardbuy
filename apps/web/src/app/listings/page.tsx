@@ -38,8 +38,8 @@ export default function ListingsPage({ searchParams }: Props) {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{gameLabel}</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="font-display text-2xl font-bold text-white">{gameLabel}</h1>
+        <p className="text-sm text-slate-400 mt-1">
           {PLACEHOLDER_LISTINGS.length} carta{PLACEHOLDER_LISTINGS.length !== 1 ? "s" : ""} disponible
           {PLACEHOLDER_LISTINGS.length !== 1 ? "s" : ""}
         </p>
