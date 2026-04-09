@@ -44,10 +44,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+    <div className="bg-surface rounded-2xl border border-surface-border p-8">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Bienvenido a CardBuy</h1>
-        <p className="mt-1 text-sm text-gray-500">Inicia sesión en tu cuenta</p>
+        <h1 className="font-display text-2xl font-bold text-white">Bienvenido a CardBuy</h1>
+        <p className="mt-1 text-sm text-slate-400">Inicia sesión en tu cuenta</p>
       </div>
 
       <Button
@@ -102,9 +102,9 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-500">
+      <p className="mt-6 text-center text-sm text-slate-400">
         ¿No tienes cuenta?{" "}
-        <Link href="/register" className="font-medium text-blue-600 hover:underline">
+        <Link href="/register" className="font-medium text-brand hover:text-brand-light transition-colors">
           Regístrate gratis
         </Link>
       </p>

@@ -56,10 +56,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+    <div className="bg-surface rounded-2xl border border-surface-border p-8">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Crear cuenta en CardBuy</h1>
-        <p className="mt-1 text-sm text-gray-500">El marketplace de cartas TCG de confianza</p>
+        <h1 className="font-display text-2xl font-bold text-white">Crear cuenta en CardBuy</h1>
+        <p className="mt-1 text-sm text-slate-400">El marketplace de cartas TCG de confianza</p>
       </div>
 
       <Button
@@ -120,7 +120,7 @@ export default function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Mín. 8 caracteres, 1 mayúscula y 1 número"
           />
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-slate-500">
             Mínimo 8 caracteres, una mayúscula y un número
           </p>
         </div>
@@ -130,9 +130,9 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-500">
+      <p className="mt-6 text-center text-sm text-slate-400">
         ¿Ya tienes cuenta?{" "}
-        <Link href="/login" className="font-medium text-blue-600 hover:underline">
+        <Link href="/login" className="font-medium text-brand hover:text-brand-light transition-colors">
           Inicia sesión
         </Link>
       </p>

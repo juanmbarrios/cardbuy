@@ -56,16 +56,18 @@ export function FilterPanel() {
   );
 
   const selectClass =
-    "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+    "w-full rounded-lg border border-surface-border bg-surface px-3 py-2 text-sm text-slate-200 " +
+    "focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/50 " +
+    "transition-colors [&>option]:bg-surface [&>option]:text-slate-200";
 
   return (
     <aside className="space-y-4">
-      <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+      <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
         Filtros
       </h2>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Juego</label>
+        <label className="block text-sm font-medium text-slate-300 mb-1">Juego</label>
         <select
           className={selectClass}
           value={searchParams.get("game") ?? ""}
@@ -80,7 +82,7 @@ export function FilterPanel() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Condición</label>
+        <label className="block text-sm font-medium text-slate-300 mb-1">Condición</label>
         <select
           className={selectClass}
           value={searchParams.get("condition") ?? ""}
@@ -95,7 +97,7 @@ export function FilterPanel() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Idioma</label>
+        <label className="block text-sm font-medium text-slate-300 mb-1">Idioma</label>
         <select
           className={selectClass}
           value={searchParams.get("language") ?? ""}

@@ -4,16 +4,34 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: #0d1525;
+    --foreground: #f1f5f9;
   }
 
   body {
     font-family: var(--font-inter), system-ui, sans-serif;
+    background-color: #0d1525;
+    color: #f1f5f9;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display), system-ui, sans-serif;
+  }
+
+  /* Scrollbar personalizada */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #080f1c;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e3050;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #f0a500;
   }
 }
 

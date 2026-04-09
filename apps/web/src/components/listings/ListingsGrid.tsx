@@ -9,8 +9,8 @@ export function ListingsGrid({ listings }: Props) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <span className="text-5xl mb-4">🃏</span>
-        <h3 className="text-lg font-semibold text-gray-900">No hay cartas disponibles</h3>
-        <p className="mt-1 text-sm text-gray-500">
+        <h3 className="text-lg font-semibold text-white">No hay cartas disponibles</h3>
+        <p className="mt-1 text-sm text-slate-400">
           Prueba a cambiar los filtros o vuelve más tarde.
         </p>
       </div>

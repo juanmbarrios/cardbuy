@@ -47,7 +47,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${inter.variable} ${plusJakartaSans.variable}`}>
-      <body className="flex min-h-screen flex-col bg-white font-sans">
+      <body className="flex min-h-screen flex-col bg-bg font-sans">
         <Providers>
           <Navbar />
           <main className="flex-1">{children}</main>

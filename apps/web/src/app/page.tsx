@@ -14,22 +14,28 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-b from-brand-50 to-white py-20 px-4">
-        <div className="mx-auto max-w-3xl text-center">
-          <Badge variant="info" className="mb-4">
+      <section className="relative bg-hero-gradient py-24 px-4 overflow-hidden">
+        {/* Glow decorativo */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-brand/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 right-1/4 w-[300px] h-[300px] bg-accent/5 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto max-w-3xl text-center">
+          <Badge variant="gold" className="mb-5">
             Marketplace TCG de confianza
           </Badge>
-          <h1 className="font-display text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          <h1 className="font-display text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
             Compra y vende cartas TCG{" "}
-            <span className="text-brand-600">con seguridad</span>
+            <span className="text-brand">con seguridad</span>
           </h1>
-          <p className="mt-6 text-lg text-gray-600">
+          <p className="mt-6 text-lg text-slate-400 max-w-2xl mx-auto">
             Vendedores verificados, pago protegido y gestión de disputas. El marketplace
             para coleccionistas y jugadores de Pokémon, Magic, Yu-Gi-Oh! y más.
           </p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link href="/listings">
-              <Button size="lg">Ver cartas en venta</Button>
+              <Button variant="primary" size="lg">Ver cartas en venta</Button>
             </Link>
             <Link href="/register">
               <Button variant="secondary" size="lg">
@@ -43,18 +49,18 @@ export default function HomePage() {
       {/* Juegos */}
       <section className="py-16 px-4">
         <div className="mx-auto max-w-7xl">
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="font-display text-2xl font-bold text-white text-center mb-10">
             Explora por juego
           </h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {GAMES.map((game) => (
               <Link
                 key={game.href}
                 href={game.href}
-                className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white p-4 text-center transition-shadow hover:shadow-md hover:border-brand-200"
+                className="flex flex-col items-center gap-2 rounded-xl border border-surface-border bg-surface p-4 text-center transition-all duration-200 hover:border-brand/40 hover:bg-surface-hover hover:shadow-glow-card"
               >
                 <span className="text-3xl">{game.emoji}</span>
-                <span className="text-sm font-medium text-gray-700">{game.name}</span>
+                <span className="text-sm font-medium text-slate-300 group-hover:text-white">{game.name}</span>
               </Link>
             ))}
           </div>
@@ -62,23 +68,23 @@ export default function HomePage() {
       </section>
 
       {/* Trust signals */}
-      <section className="bg-gray-50 py-16 px-4">
+      <section className="py-16 px-4 border-t border-surface-border">
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 text-center">
-            <div>
-              <div className="text-3xl font-bold text-brand-600">✓</div>
-              <h3 className="mt-2 font-semibold text-gray-900">Vendedores verificados</h3>
-              <p className="mt-1 text-sm text-gray-500">KYC obligatorio para todos los vendedores</p>
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-brand/15 flex items-center justify-center text-2xl">✓</div>
+              <h3 className="font-semibold text-white">Vendedores verificados</h3>
+              <p className="text-sm text-slate-500">KYC obligatorio para todos los vendedores</p>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-brand-600">🔒</div>
-              <h3 className="mt-2 font-semibold text-gray-900">Pago protegido</h3>
-              <p className="mt-1 text-sm text-gray-500">El dinero se libera al confirmar la recepción</p>
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-accent/15 flex items-center justify-center text-2xl">🔒</div>
+              <h3 className="font-semibold text-white">Pago protegido</h3>
+              <p className="text-sm text-slate-500">El dinero se libera al confirmar la recepción</p>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-brand-600">⭐</div>
-              <h3 className="mt-2 font-semibold text-gray-900">Sistema de reputación</h3>
-              <p className="mt-1 text-sm text-gray-500">Valoraciones verificadas de compradores reales</p>
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-brand/15 flex items-center justify-center text-2xl">⭐</div>
+              <h3 className="font-semibold text-white">Sistema de reputación</h3>
+              <p className="text-sm text-slate-500">Valoraciones verificadas de compradores reales</p>
             </div>
           </div>
         </div>
