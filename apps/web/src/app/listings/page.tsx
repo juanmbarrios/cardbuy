@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Spinner } from "@cardbuy/ui";
 import { FilterPanel } from "@/components/listings/FilterPanel";
 import { ListingsGrid } from "@/components/listings/ListingsGrid";
+import { ListingsGridSkeleton } from "@/components/listings/ListingsGridSkeleton";
 import type { CardListingData } from "@/components/listings/CardListingCard";
 
 interface SearchParams {
@@ -13,6 +13,7 @@ interface SearchParams {
   maxPrice?: string;
   sort?: string;
   page?: string;
+  q?: string;
 }
 
 interface Props {
@@ -107,15 +108,12 @@ export default function ListingsPage({ searchParams }: Props) {
         </div>
 
         {/* Grid */}
-        <div className="flex-1">
-          <Suspense
-            fallback={
-              <div className="flex justify-center py-20">
-                <Spinner size="lg" />
-              </div>
-            }
-          >
-            <ListingsGrid listings={PLACEHOLDER_LISTINGS} />
+        <div className="flex-1 min-w-0">
+          <Suspense fallback={<ListingsGridSkeleton count={10} />}>
+            <ListingsGrid
+              listings={PLACEHOLDER_LISTINGS}
+              searchQuery={searchParams.q}
+            />
           </Suspense>
         </div>
       </div>

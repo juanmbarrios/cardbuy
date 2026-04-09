@@ -55,7 +55,7 @@ function SellerInfo({
 }) {
   return (
     <div className="flex items-center gap-1.5 min-w-0">
-      <span className="text-xs text-slate-400 truncate max-w-[90px]">{name}</span>
+      <span className="text-xs text-slate-400 truncate">{name}</span>
       {isVerified && (
         <span
           title="Vendedor verificado"
@@ -65,7 +65,7 @@ function SellerInfo({
         </span>
       )}
       <span className="text-xs text-amber-400 shrink-0">★ {rating.toFixed(1)}</span>
-      <span className="text-xs text-slate-600 shrink-0">({reviewCount})</span>
+      <span className="hidden sm:inline text-xs text-slate-600 shrink-0">({reviewCount})</span>
     </div>
   );
 }
@@ -110,7 +110,7 @@ export function CardListingCard({ listing }: Props) {
       {/* Info */}
       <div className="p-3 flex flex-col gap-1.5">
         {/* Precio — elemento dominante */}
-        <div className="flex items-baseline justify-between gap-1">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-1 gap-y-0.5">
           <span
             className={[
               "text-xl font-bold leading-none",
