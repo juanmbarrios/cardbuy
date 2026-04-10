@@ -2,124 +2,83 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@cardbuy/ui";
+import { prisma } from "@cardbuy/db";
 import { AddToCartButton } from "@/components/listings/AddToCartButton";
-import type { CardListingData } from "@/components/listings/CardListingCard";
-
-// ---------------------------------------------------------------------------
-// Mock data — se sustituirá por fetch real desde la API / DB
-// ---------------------------------------------------------------------------
-
-const MOCK_LISTINGS: Record<string, CardListingData & { description?: string }> = {
-  "1": {
-    id: "1",
-    title: "Charizard ex — Obsidian Flames",
-    price: 34.99,
-    condition: "NM",
-    language: "EN",
-    game: "pokemon",
-    sellerName: "CardShark",
-    imageUrl: undefined,
-    stock: 3,
-    sellerRating: 4.9,
-    sellerReviewCount: 218,
-    isVerified: true,
-    description:
-      "Charizard ex en condición Near Mint, sin marcas ni rayaduras visibles. Envío con protector rígido y embolsado individual.",
-  },
-  "2": {
-    id: "2",
-    title: "Black Lotus — Alpha",
-    price: 4999.0,
-    condition: "LP",
-    language: "EN",
-    game: "mtg",
-    sellerName: "MTGVault",
-    stock: 1,
-    sellerRating: 4.7,
-    sellerReviewCount: 85,
-    isVerified: true,
-    description:
-      "Black Lotus original de la edición Alpha (1993). Condición Lightly Played — pequeñas marcas de juego en los bordes. Autenticado por PSA.",
-  },
-  "3": {
-    id: "3",
-    title: "Blue-Eyes White Dragon — LOB-001",
-    price: 12.5,
-    condition: "MP",
-    language: "ES",
-    game: "yugioh",
-    sellerName: "DuelStore",
-    stock: 0,
-    sellerRating: 4.2,
-    sellerReviewCount: 43,
-    isVerified: false,
-    description: "Blue-Eyes White Dragon primera edición española. Moderately Played.",
-  },
-  "4": {
-    id: "4",
-    title: "Monkey D. Luffy — OP01-001",
-    price: 8.0,
-    condition: "NM",
-    language: "JP",
-    game: "onepiece",
-    sellerName: "GrandLine",
-    stock: 7,
-    sellerRating: 4.8,
-    sellerReviewCount: 130,
-    isVerified: true,
-    description: "Monkey D. Luffy Leader en japonés, Near Mint. Directamente del booster.",
-  },
-};
-
-// ---------------------------------------------------------------------------
 
 const CONDITION_LABELS: Record<string, string> = {
-  NM: "Near Mint",
-  LP: "Lightly Played",
-  MP: "Moderately Played",
-  HP: "Heavily Played",
-  DMG: "Damaged",
+  NEAR_MINT: "Near Mint",
+  LIGHTLY_PLAYED: "Lightly Played",
+  MODERATELY_PLAYED: "Moderately Played",
+  HEAVILY_PLAYED: "Heavily Played",
+  DAMAGED: "Damaged",
+};
+
+const CONDITION_SHORT: Record<string, string> = {
+  NEAR_MINT: "NM",
+  LIGHTLY_PLAYED: "LP",
+  MODERATELY_PLAYED: "MP",
+  HEAVILY_PLAYED: "HP",
+  DAMAGED: "DMG",
 };
 
 const CONDITION_VARIANTS: Record<string, "success" | "warning" | "danger" | "default"> = {
-  NM: "success",
-  LP: "success",
-  MP: "warning",
-  HP: "danger",
-  DMG: "danger",
+  NEAR_MINT: "success",
+  LIGHTLY_PLAYED: "success",
+  MODERATELY_PLAYED: "warning",
+  HEAVILY_PLAYED: "danger",
+  DAMAGED: "danger",
 };
 
 const GAME_LABELS: Record<string, string> = {
-  pokemon: "Pokémon",
-  mtg: "Magic: The Gathering",
-  yugioh: "Yu-Gi-Oh!",
-  onepiece: "One Piece",
-  lorcana: "Lorcana",
-  dragonball: "Dragon Ball",
-  fab: "Flesh and Blood",
-  digimon: "Digimon",
-  vanguard: "Vanguard",
+  POKEMON: "Pokémon",
+  MAGIC_THE_GATHERING: "Magic: The Gathering",
+  YUGIOH: "Yu-Gi-Oh!",
+  ONE_PIECE: "One Piece",
+  LORCANA: "Lorcana",
+  DRAGON_BALL: "Dragon Ball",
+  FLESH_AND_BLOOD: "Flesh and Blood",
+  DIGIMON: "Digimon",
+  VANGUARD: "Vanguard",
 };
 
 interface Props {
   params: { id: string };
 }
 
+async function getListing(id: string) {
+  return prisma.cardListing.findUnique({
+    where: { id },
+    include: {
+      card: { select: { name: true, game: true, rarity: true } },
+      seller: {
+        select: {
+          shopName: true,
+          averageRating: true,
+          totalReviews: true,
+          stripeOnboarded: true,
+        },
+      },
+    },
+  });
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const listing = MOCK_LISTINGS[params.id];
+  const listing = await getListing(params.id);
   if (!listing) return { title: "Carta no encontrada" };
   return {
-    title: `${listing.title} — CardBuy`,
-    description: `Compra ${listing.title} en ${listing.price.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}. Vendedor: ${listing.sellerName}.`,
+    title: `${listing.card.name} — CardBuy`,
+    description: `Compra ${listing.card.name} en ${Number(listing.price).toLocaleString("es-ES", { style: "currency", currency: "EUR" })}. Vendedor: ${listing.seller.shopName}.`,
   };
 }
 
-export default function ListingDetailPage({ params }: Props) {
-  const listing = MOCK_LISTINGS[params.id];
+export default async function ListingDetailPage({ params }: Props) {
+  const listing = await getListing(params.id);
 
-  if (!listing) notFound();
+  if (!listing || listing.status === "CANCELLED" || listing.status === "EXPIRED") notFound();
 
-  const isOutOfStock = listing.stock === 0;
+  const isOutOfStock = listing.quantity === 0 || listing.status === "SOLD";
+  const condition = listing.condition as string;
+  const game = listing.card.game as string;
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
@@ -129,18 +88,18 @@ export default function ListingDetailPage({ params }: Props) {
           Cartas
         </Link>
         <span>/</span>
-        <span className="text-slate-300 truncate max-w-[240px]">{listing.title}</span>
+        <span className="text-slate-300 truncate max-w-[240px]">{listing.card.name}</span>
       </nav>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         {/* Imagen */}
         <div className="flex items-start justify-center">
           <div className="relative w-full max-w-xs aspect-[3/4] rounded-2xl overflow-hidden bg-bg-deep border border-surface-border">
-            {listing.imageUrl ? (
+            {listing.imageUrls?.[0] ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={listing.imageUrl}
-                alt={listing.title}
+                src={listing.imageUrls[0]}
+                alt={listing.card.name}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -162,12 +121,12 @@ export default function ListingDetailPage({ params }: Props) {
         <div className="flex flex-col gap-5">
           {/* Juego */}
           <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
-            {GAME_LABELS[listing.game] ?? listing.game}
+            {GAME_LABELS[game] ?? game}
           </span>
 
           {/* Título */}
           <h1 className="font-display text-2xl font-bold text-white leading-tight">
-            {listing.title}
+            {listing.card.name}
           </h1>
 
           {/* Precio */}
@@ -178,19 +137,25 @@ export default function ListingDetailPage({ params }: Props) {
                 isOutOfStock ? "text-slate-500" : "text-brand",
               ].join(" ")}
             >
-              {listing.price.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
+              {Number(listing.price).toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
             </span>
-            {listing.stock === 1 && <Badge variant="warning">Última unidad</Badge>}
-            {listing.stock > 1 && <Badge variant="success">En stock ({listing.stock})</Badge>}
+            {listing.quantity === 1 && !isOutOfStock && (
+              <Badge variant="warning">Última unidad</Badge>
+            )}
+            {listing.quantity > 1 && !isOutOfStock && (
+              <Badge variant="success">En stock ({listing.quantity})</Badge>
+            )}
             {isOutOfStock && <Badge variant="danger">Agotado</Badge>}
           </div>
 
           {/* Condición e idioma */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant={CONDITION_VARIANTS[listing.condition] ?? "default"}>
-              {CONDITION_LABELS[listing.condition] ?? listing.condition}
+            <Badge variant={CONDITION_VARIANTS[condition] ?? "default"}>
+              {CONDITION_SHORT[condition] ?? condition} — {CONDITION_LABELS[condition] ?? condition}
             </Badge>
             <Badge variant="outline">{listing.language}</Badge>
+            {listing.isFoil && <Badge variant="default">Foil</Badge>}
+            {listing.isGraded && <Badge variant="default">Gradada</Badge>}
           </div>
 
           {/* Descripción */}
@@ -201,29 +166,28 @@ export default function ListingDetailPage({ params }: Props) {
           {/* Vendedor */}
           <div className="rounded-xl border border-surface-border bg-surface p-4 flex items-center gap-4">
             <div className="h-10 w-10 rounded-full bg-surface-raised flex items-center justify-center text-slate-400 font-bold text-sm shrink-0">
-              {listing.sellerName.charAt(0).toUpperCase()}
+              {listing.seller.shopName.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-medium text-white">{listing.sellerName}</span>
-                {listing.isVerified && (
-                  <span
-                    title="Vendedor verificado"
-                    className="text-brand text-xs font-bold leading-none"
-                  >
+                <span className="text-sm font-medium text-white">{listing.seller.shopName}</span>
+                {listing.seller.stripeOnboarded && (
+                  <span title="Vendedor verificado" className="text-brand text-xs font-bold leading-none">
                     ✓
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-amber-400 text-xs">★</span>
-                <span className="text-xs text-white font-medium">
-                  {listing.sellerRating.toFixed(1)}
-                </span>
-                <span className="text-xs text-slate-500">
-                  ({listing.sellerReviewCount} valoraciones)
-                </span>
-              </div>
+              {listing.seller.totalReviews > 0 && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="text-amber-400 text-xs">★</span>
+                  <span className="text-xs text-white font-medium">
+                    {listing.seller.averageRating.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    ({listing.seller.totalReviews} valoraciones)
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
