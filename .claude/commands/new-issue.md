@@ -1,4 +1,4 @@
-Eres el asistente técnico de **CardBuy**, un marketplace TCG (Trading Card Games). Tu misión es estructurar una issue de GitHub lista para entrar al backlog.
+Eres el asistente técnico de **CardBuy**, un marketplace TCG (Trading Card Games). Tu misión es estructurar y crear una issue de GitHub lista para entrar al backlog.
 
 ## Contexto del proyecto
 
@@ -44,7 +44,9 @@ packages/db/prisma/schema.prisma → modelos de datos
 Dado el siguiente texto del usuario:
 "$ARGUMENTS"
 
-Genera una issue de GitHub completamente estructurada en este formato exacto:
+### Paso 1 — Generar la issue estructurada
+
+Genera la issue en este formato exacto:
 
 ```markdown
 ## [Tipo] Título descriptivo y accionable (máx 70 chars)
@@ -74,7 +76,81 @@ Genera una issue de GitHub completamente estructurada en este formato exacto:
 `[label1]`, `[label2]`, `[estimación]`
 ```
 
-Después de la issue, añade una línea con:
-**Estimación sugerida:** [XS/S/M/L/XL] — [breve justificación en 1 línea]
-
 Sé preciso, operativo y adaptado al contexto TCG. Si la descripción original es vaga, infiere el contexto razonablemente y menciona qué asumiste.
+
+### Paso 2 — Crear la issue en GitHub
+
+Crea la issue en el repositorio usando `gh issue create`. Extrae los labels de la sección "Labels sugeridos" y aplícalos directamente:
+
+```bash
+gh issue create \
+  --repo juanmbarrios/cardbuy \
+  --title "[Tipo] Título" \
+  --body "$(cat <<'BODY'
+[contenido completo de la issue generada en el paso 1]
+BODY
+)" \
+  --label "label1,label2,estimate-X"
+```
+
+### Paso 3 — Añadir al Kanban en "Todo"
+
+Una vez creada la issue, añádela al proyecto Kanban (proyecto número 1) en la columna **Todo**.
+
+Proyecto: número **1** (`PVT_kwHOA5oLPc4BSWfW`)
+Status field: `PVTSSF_lAHOA5oLPc4BSWfWzg_6XPU`
+Todo option ID: `f75ad846`
+
+```bash
+# 1. Obtener el número de la issue recién creada
+ISSUE_NUMBER=$(gh issue list --repo juanmbarrios/cardbuy --limit 1 --json number --jq '.[0].number')
+ISSUE_URL="https://github.com/juanmbarrios/cardbuy/issues/$ISSUE_NUMBER"
+
+# 2. Añadir al proyecto
+gh project item-add 1 --owner juanmbarrios --url "$ISSUE_URL"
+
+# 3. Mover a "Todo" (puede ya estar en Todo por defecto; hacerlo explícito)
+sleep 1
+ITEM_ID=$(gh api graphql -f query='
+query($projectId: ID!) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      items(first: 100) {
+        nodes {
+          id
+          content { ... on Issue { number } }
+        }
+      }
+    }
+  }
+}' -f projectId="PVT_kwHOA5oLPc4BSWfW" | \
+python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+for item in d['data']['node']['items']['nodes']:
+    if item.get('content',{}).get('number') == $ISSUE_NUMBER:
+        print(item['id']); break
+")
+
+gh api graphql -f query='
+mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+  updateProjectV2ItemFieldValue(input: {
+    projectId: $projectId
+    itemId: $itemId
+    fieldId: $fieldId
+    value: { singleSelectOptionId: $optionId }
+  }) { projectV2Item { id } }
+}' \
+-f projectId="PVT_kwHOA5oLPc4BSWfW" \
+-f itemId="$ITEM_ID" \
+-f fieldId="PVTSSF_lAHOA5oLPc4BSWfWzg_6XPU" \
+-f optionId="f75ad846" \
+&& echo "✓ Issue #$ISSUE_NUMBER añadida al Kanban en Todo"
+```
+
+### Paso 4 — Informar al usuario
+
+Muestra:
+- Número y URL de la issue creada
+- Confirmación de que está en el Kanban en "Todo"
+- Estimación sugerida: [XS/S/M/L/XL] — [justificación breve]
