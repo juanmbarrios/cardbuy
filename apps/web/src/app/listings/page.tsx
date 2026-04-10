@@ -39,10 +39,14 @@ const CONDITION_SHORT: Record<string, string> = {
 
 const GAME_FILTER: Record<string, string> = {
   pokemon: "POKEMON",
-  magic: "MAGIC",
+  magic: "MAGIC_THE_GATHERING",
   yugioh: "YUGIOH",
   onepiece: "ONE_PIECE",
   lorcana: "LORCANA",
+  dragonball: "DRAGON_BALL",
+  fab: "FLESH_AND_BLOOD",
+  digimon: "DIGIMON",
+  vanguard: "VANGUARD",
 };
 
 async function getListings(searchParams: SearchParams): Promise<CardListingData[]> {
