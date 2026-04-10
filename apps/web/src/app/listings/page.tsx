@@ -49,53 +49,43 @@ const GAME_FILTER: Record<string, string> = {
   vanguard: "VANGUARD",
 };
 
-async function getListings(searchParams: SearchParams): Promise<CardListingData[]> {
-  const where: Record<string, unknown> = { status: "ACTIVE" };
-
+async function queryListings(searchParams: SearchParams) {
+  const cardWhere: { game?: string; name?: { contains: string; mode: "insensitive" } } = {};
   if (searchParams.game && GAME_FILTER[searchParams.game]) {
-    where.card = { game: GAME_FILTER[searchParams.game] };
+    cardWhere.game = GAME_FILTER[searchParams.game];
   }
-
   if (searchParams.q) {
-    where.card = {
-      ...(where.card as object ?? {}),
-      name: { contains: searchParams.q, mode: "insensitive" },
-    };
+    cardWhere.name = { contains: searchParams.q, mode: "insensitive" };
   }
 
-  if (searchParams.condition) {
-    where.condition = searchParams.condition.toUpperCase();
-  }
+  const priceWhere: { gte?: number; lte?: number } = {};
+  if (searchParams.minPrice) priceWhere.gte = parseFloat(searchParams.minPrice);
+  if (searchParams.maxPrice) priceWhere.lte = parseFloat(searchParams.maxPrice);
 
-  if (searchParams.language) {
-    where.language = searchParams.language.toUpperCase();
-  }
-
-  if (searchParams.minPrice || searchParams.maxPrice) {
-    where.price = {
-      ...(searchParams.minPrice ? { gte: parseFloat(searchParams.minPrice) } : {}),
-      ...(searchParams.maxPrice ? { lte: parseFloat(searchParams.maxPrice) } : {}),
-    };
-  }
-
-  const orderBy: Record<string, string> =
-    searchParams.sort === "price_asc"
-      ? { price: "asc" }
-      : searchParams.sort === "price_desc"
-      ? { price: "desc" }
-      : searchParams.sort === "newest"
-      ? { createdAt: "desc" }
-      : { createdAt: "desc" };
-
-  const listings = await prisma.cardListing.findMany({
-    where,
-    orderBy,
+  return prisma.cardListing.findMany({
+    where: {
+      status: "ACTIVE",
+      ...(Object.keys(cardWhere).length > 0 ? { card: cardWhere } : {}),
+      ...(searchParams.condition ? { condition: searchParams.condition.toUpperCase() } : {}),
+      ...(searchParams.language ? { language: searchParams.language.toUpperCase() } : {}),
+      ...(Object.keys(priceWhere).length > 0 ? { price: priceWhere } : {}),
+    },
+    orderBy:
+      searchParams.sort === "price_asc" ? { price: "asc" }
+      : searchParams.sort === "price_desc" ? { price: "desc" }
+      : { createdAt: "desc" },
     take: 48,
     include: {
       card: { select: { name: true, game: true } },
       seller: { select: { shopName: true } },
     },
   });
+}
+
+type QueryResult = Awaited<ReturnType<typeof queryListings>>;
+
+async function getListings(searchParams: SearchParams): Promise<CardListingData[]> {
+  const listings: QueryResult = await queryListings(searchParams);
 
   return listings.map((l) => ({
     id: l.id,
