@@ -93,7 +93,7 @@ async function getListings(searchParams: SearchParams): Promise<CardListingData[
     take: 48,
     include: {
       card: { select: { name: true, game: true } },
-      seller: { select: { name: true } },
+      seller: { select: { shopName: true } },
     },
   });
 
@@ -104,7 +104,7 @@ async function getListings(searchParams: SearchParams): Promise<CardListingData[
     condition: CONDITION_SHORT[l.condition] ?? l.condition,
     language: l.language,
     game: l.card.game,
-    sellerName: l.seller.name ?? "Vendedor",
+    sellerName: l.seller.shopName,
     imageUrl: l.imageUrls?.[0] ?? undefined,
   }));
 }
