@@ -123,14 +123,7 @@ query($projectId: ID!) {
       }
     }
   }
-}' -f projectId="PVT_kwHOA5oLPc4BSWfW" | \
-python3 -c "
-import sys,json
-d=json.load(sys.stdin)
-for item in d['data']['node']['items']['nodes']:
-    if item.get('content',{}).get('number') == $ISSUE_NUMBER:
-        print(item['id']); break
-")
+}' -f projectId="PVT_kwHOA5oLPc4BSWfW" --jq ".data.node.items.nodes[] | select(.content.number == $ISSUE_NUMBER) | .id")
 
 gh api graphql -f query='
 mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {

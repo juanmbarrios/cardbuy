@@ -42,14 +42,7 @@ move_to_column() {
         }
       }
     }
-  }' -f projectId="$PROJECT_ID" 2>/dev/null | \
-  python3 -c "
-import sys,json
-d=json.load(sys.stdin)
-for item in d['data']['node']['items']['nodes']:
-    if item.get('content',{}).get('number') == $ISSUE_NUMBER:
-        print(item['id']); break
-" 2>/dev/null)
+  }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $ISSUE_NUMBER) | .id" 2>/dev/null)
 
   if [ -z "$ITEM_ID" ]; then
     # La issue no está en el proyecto, añadirla primero
@@ -68,14 +61,7 @@ for item in d['data']['node']['items']['nodes']:
           }
         }
       }
-    }' -f projectId="$PROJECT_ID" 2>/dev/null | \
-    python3 -c "
-import sys,json
-d=json.load(sys.stdin)
-for item in d['data']['node']['items']['nodes']:
-    if item.get('content',{}).get('number') == $ISSUE_NUMBER:
-        print(item['id']); break
-" 2>/dev/null)
+    }' -f projectId="$PROJECT_ID" --jq ".data.node.items.nodes[] | select(.content.number == $ISSUE_NUMBER) | .id" 2>/dev/null)
   fi
 
   if [ -n "$ITEM_ID" ]; then
